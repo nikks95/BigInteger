@@ -13,6 +13,7 @@
 #include <string>
 #include <regex>
 #include <stack>
+#include <math.h>
 
 #define PAD_SIZE 8 // limit the value which can be stored in an integer for example 8 means maximum value which can be stored in an element of integer array is 99999999
 
@@ -49,13 +50,13 @@ public:
 
 	// arithmetic operators
 
-	BigInteger& operator + (BigInteger&);
-	BigInteger& operator - (BigInteger&);
+	BigInteger operator + (BigInteger&);
+	BigInteger operator - (BigInteger&);
 
 private:
 
-	void UnsignedAddition(BigInteger&, BigInteger&, unsigned int, unsigned int, BigInteger&);
-	void SignedAddition(BigInteger&, BigInteger&, unsigned int, unsigned int, BigInteger&);
+	void UnsignedAddition(BigInteger&, BigInteger&, BigInteger&);
+	void SignedAddition(BigInteger&, BigInteger&, BigInteger&);
 
 	vector<int> integer_array; // hold integers values
 	bool negative;     // true if the integer has negative magnitude
@@ -63,14 +64,14 @@ private:
 	void StoreString(string);
 };
 
-BigInteger& BigInteger::operator + (BigInteger& input)
+
+// this operator is not optimized better operations can be done on it in future versions
+BigInteger BigInteger::operator + (BigInteger& input)
 {
-	int input1_size = this->integer_array.size();
-	int input2_size = input.integer_array.size();
+	bool is_this_greater; // denotes which integer is greater
+	int input1_size = this->integer_array.size(); //holds size of this
+	int input2_size = input.integer_array.size(); //holds size of input
 	BigInteger result;
-	stack<int> result_holder;
-	int max = input1_size > input2_size ? input1_size : input2_size; // max no of iterations in loop
-	int min = input1_size <= input2_size ? input1_size : input2_size;
 	// negative value
 	// if both are positive then 0
 	// if operand 1 is negative then 1
@@ -89,7 +90,22 @@ BigInteger& BigInteger::operator + (BigInteger& input)
 	//determining the sign of result
 	if (input1_size == input2_size)
 		if (*this > input)
-			result.negative = this->negative;
+		{
+			int i = 0;
+			while (i < input1_size)
+				if (this->integer_array[i] > input.integer_array[i])
+				{
+					result.negative = this->negative;
+					break;
+				}
+				else if (this->integer_array[i] < input.integer_array[i])
+				{
+					result.negative = input.negative;
+					break;
+				}
+				else
+					i++;
+		}
 		else
 			result.negative = input.negative;
 	else
@@ -98,16 +114,174 @@ BigInteger& BigInteger::operator + (BigInteger& input)
 		else
 			result.negative = input.negative;
 
-	// addition is performed in this loop
-	if (negative == 3 || negative == 0);
-		//		UnsignedAddition(*this, input, max, min, result);
 
-	else;
-//		SignedAddition(*this, input, max, min, result);
+	// addition is performed in this loop
+	if (negative == 3 || negative == 0)
+		UnsignedAddition(*this, input, result);
+
+	else
+		SignedAddition(*this, input, result);
 
 	return result;
 }
 
+// not properly tested yet
+void BigInteger::UnsignedAddition(BigInteger &input1, BigInteger &input2, BigInteger &result)
+{
+	int input1_size = input1.integer_array.size();
+	int input2_size = input2.integer_array.size();
+	stack<int> result_holder;
+	int carry = 0;
+	while (input1_size > 0 || input2_size > 0)
+	{
+		int result;
+		input1_size--;
+		input2_size--;
+		if (input1_size >= 0 && input2_size >= 0)
+		{
+			result = input1.integer_array[input1_size] + input2.integer_array[input2_size] + carry;
+			carry = 0;
+			if (result >= (int)pow(10, PAD_SIZE))
+			{
+				result = result % (int)pow(10, PAD_SIZE);
+				carry = 1;
+			}
+		}
+		else if (input1_size >= 0)
+		{
+			result = input1.integer_array[input1_size] + carry;
+			carry = 0;
+			if (result >= (int)pow(10, PAD_SIZE))
+			{
+				result = result % (int)pow(10, PAD_SIZE);
+				carry = 1;
+			}
+		}
+		else
+		{
+			result = input2.integer_array[input2_size] + carry;
+			carry = 0;
+			if (result >= (int)pow(10, PAD_SIZE))
+			{
+				result = result % (int)pow(10, PAD_SIZE);
+				carry = 1;
+			}
+		}
+		result_holder.push(result);
+	}
+	if (carry == 1)
+		result_holder.push(carry);
+	while (!result_holder.empty())
+	{
+		result.integer_array.push_back(result_holder.top());
+		result_holder.pop();
+	}
+	while (result.integer_array[0] == 0 && result.integer_array.size() > 1)
+		result.integer_array.erase(result.integer_array.begin());
+}
+
+// not tested properly yet but working
+void BigInteger::SignedAddition(BigInteger &input1, BigInteger &input2, BigInteger &result)
+{
+	int input1_size = input1.integer_array.size();
+	int input2_size = input2.integer_array.size();
+	stack<int> result_holder;
+	
+	int greater;
+	if (input1_size == input2_size)
+	{
+		if (input1.integer_array == input2.integer_array)
+			return;
+		else if (input1.integer_array[0] > input2.integer_array[0])
+			greater = 1;
+		else if (input1.integer_array[0] < input2.integer_array[0])
+			greater = 2;
+		else
+		{
+			int i = 1;
+			while (i < input1_size)
+				if (input1.integer_array[i] > input2.integer_array[i])
+				{
+					greater = 1;
+					break;
+				}
+				else if (input1.integer_array[i] < input2.integer_array[i])
+				{
+					greater = 2;
+					break;
+				}
+				else
+					i++;
+		}
+	}
+	else if (input1_size > input2_size)
+		greater = 1;
+	else
+		greater = 2;
+
+
+	int carry = 0;
+	while (input1_size >0 || input2_size > 0)
+	{
+		input1_size--;
+		input2_size--;
+		if (input1_size >= 0 && input2_size >= 0)
+		{
+			int result;
+			if (greater == 1 && (input1.integer_array[input1_size] + carry) < input2.integer_array[input2_size])
+			{
+				// this is true when input1 is greater in magnitude but its element is smaller than input2 element
+				result = input1.integer_array[input1_size] + carry + (int)pow(10, PAD_SIZE) - input2.integer_array[input2_size];
+				carry = -1;
+			}
+			else if (greater == 2 && input1.integer_array[input1_size] > (input2.integer_array[input2_size] + carry))
+			{
+				result = input2.integer_array[input2_size] + carry + (int)pow(10, PAD_SIZE) - input1.integer_array[input1_size];
+				carry = -1;
+			}
+			else if (greater == 1)
+			{
+				result = input1.integer_array[input1_size] - input2.integer_array[input2_size] + carry;
+				carry = 0;
+			}
+			else
+			{
+				result = input2.integer_array[input2_size] - input1.integer_array[input1_size] + carry;
+				carry = 0;
+			}
+			result_holder.push(result);
+		}
+		else if (input1_size >= 0)
+		{
+			if(input1.integer_array[input1_size] == 0 && carry == -1)
+				result_holder.push(carry + (int) pow(10, PAD_SIZE));
+			else
+			{
+				result_holder.push(input1.integer_array[input1_size] + carry);
+				carry = 0;
+			}
+		}
+		else
+		{
+			if (input2.integer_array[input2_size] == 0 && carry == -1)
+				result_holder.push(carry + (int) pow(10, PAD_SIZE));
+			else
+			{
+				result_holder.push(input2.integer_array[input2_size] + carry);
+				carry = 0;
+			}
+		}
+	}
+	result.integer_array.clear();
+	while (!result_holder.empty())
+	{
+		result.integer_array.push_back(result_holder.top());
+		result_holder.pop();
+	}
+
+	while (result.integer_array[0] == 0 && result.integer_array.size() > 1)
+		result.integer_array.erase(result.integer_array.begin());
+}
 
 bool BigInteger::operator < (BigInteger& input)
 {
