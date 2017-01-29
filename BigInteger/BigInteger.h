@@ -5,8 +5,9 @@
 // version 0.0.0
 // owner kartik
 // this file comes with NO WARRANTY
-// you are free to use and modify this file until but you must not edit or remove license
+// you are free to use and modify this file but you must not edit or remove LICENSE
 // to report bug or to request feature email kartik.thakur@hotmail.com
+//LICENSE
 
 #include <iostream>
 #include <vector>
@@ -50,8 +51,8 @@ public:
 
 	// arithmetic operators
 
-	BigInteger operator + (BigInteger&);
-	BigInteger operator - (BigInteger&);
+	BigInteger operator + (BigInteger);
+	BigInteger operator - (BigInteger);
 
 private:
 
@@ -65,10 +66,28 @@ private:
 };
 
 
-// this operator is not optimized better operations can be done on it in future versions
-BigInteger BigInteger::operator + (BigInteger& input)
+BigInteger BigInteger::operator - (BigInteger input)
 {
-	bool is_this_greater; // denotes which integer is greater
+	BigInteger result;
+	if (this->negative && !input.negative)
+		result.negative = true;
+	else if (!this->negative && input.negative)
+		result.negative = false;
+	else
+	{
+		if (*this > input)
+			result.negative = false;
+		else
+			result.negative = true;
+		input.negative = !input.negative;
+	}
+	result = *this + input;
+	return result;
+}
+
+// this operator is not optimized better operations can be done on it in future versions
+BigInteger BigInteger::operator + (BigInteger input)
+{
 	int input1_size = this->integer_array.size(); //holds size of this
 	int input2_size = input.integer_array.size(); //holds size of input
 	BigInteger result;
@@ -191,7 +210,10 @@ void BigInteger::SignedAddition(BigInteger &input1, BigInteger &input2, BigInteg
 	if (input1_size == input2_size)
 	{
 		if (input1.integer_array == input2.integer_array)
+		{
+			result.negative = false;
 			return;
+		}
 		else if (input1.integer_array[0] > input2.integer_array[0])
 			greater = 1;
 		else if (input1.integer_array[0] < input2.integer_array[0])
