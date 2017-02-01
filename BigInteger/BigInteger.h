@@ -1,3 +1,5 @@
+#ifndef BIGINTEGER_H
+#define BIGINTEGER_H
 #pragma once
 
 // LICENSE
@@ -9,6 +11,9 @@
 // to report bug or to request feature email kartik.thakur@hotmail.com
 //LICENSE
 
+
+// WARNING! this file is not yet optimized if you are using it you may face performance issues
+
 #include <iostream>
 #include <vector>
 #include <string>
@@ -16,6 +21,8 @@
 #include <stack>
 #include <math.h>
 
+
+// PAD_SIZE is an crucial feild it can improve performance with computer with better architectures and is this file is currently designed to support every computer
 #define PAD_SIZE 8 // limit the value which can be stored in an integer for example 8 means maximum value which can be stored in an element of integer array is 99999999
 
 using namespace std;
@@ -29,6 +36,7 @@ public:
 	BigInteger();
 	BigInteger(string);
 	BigInteger(BigInteger&);
+	BigInteger(int);
 
 	//return the stored array in form of string
 	string ToString();
@@ -45,17 +53,57 @@ public:
 	bool operator == (BigInteger&);
 	bool operator != (BigInteger&);
 
+
+	//---------------------------------------------
+	//Operator Declared here will have added complexity avoid using them if not neccessary
+	//use relational operators declared above
+	bool operator < (string&);
+	bool operator > (string&);
+	bool operator <= (string&);
+	bool operator >= (string&);
+	bool operator == (string&);
+	bool operator != (string&);
+
+	bool operator < (int);
+	bool operator > (int);
+	bool operator <= (int);
+	bool operator >= (int);
+	bool operator == (int);
+	bool operator != (int);
+	//---------------------------------------------
+
 	// assignment operator
 	void operator = (BigInteger&);
 	void operator = (string);
+	void operator = (int);
+	/*void operator = (long);
+	void operator = (long long);
+	void operator = (long int);
+	void operator = (long long int);*/
 
 	// arithmetic operators
 
 	BigInteger operator + (BigInteger);
 	BigInteger operator - (BigInteger);
 
+	void operator += (BigInteger&);
+	void operator -= (BigInteger&);
+
+	BigInteger operator + (int);
+	BigInteger operator - (int);
+	void operator += (int);
+	void operator -= (int);
+
+	// postfix and prefix increment operators
+	
+	BigInteger operator ++ (int); // postfix increment
+	BigInteger operator ++ (); // prefix increment
+	BigInteger operator -- (int);
+	BigInteger operator -- ();
+
 private:
 
+	
 	void UnsignedAddition(BigInteger&, BigInteger&, BigInteger&);
 	void SignedAddition(BigInteger&, BigInteger&, BigInteger&);
 
@@ -65,6 +113,145 @@ private:
 	void StoreString(string);
 };
 
+BigInteger BigInteger::operator ++(int)
+{
+	BigInteger temp = *this;
+	*this += 1;
+	return temp;
+}
+
+BigInteger BigInteger::operator ++()
+{
+	*this += 1;
+	return *this;
+}
+
+BigInteger BigInteger::operator -- (int)
+{
+	BigInteger temp = *this;
+	*this -= 1;
+	return temp;
+}
+
+BigInteger BigInteger::operator -- ()
+{
+	*this -= 1;
+	return *this;
+}
+
+
+BigInteger BigInteger::operator + (int input)
+{
+	BigInteger temp = input;
+	return *this + temp;
+}
+
+BigInteger BigInteger::operator - (int input)
+{
+	BigInteger temp = input;
+	return *this - temp;
+}
+
+void BigInteger::operator += (int input)
+{
+	BigInteger temp = input;
+	*this += temp;
+}
+
+void BigInteger::operator -= (int input)
+{
+	BigInteger temp = input;
+	*this -= temp;
+}
+
+void BigInteger::operator += (BigInteger &input)
+{
+	*this = *this + input;
+}
+
+void BigInteger::operator -= (BigInteger &input)
+{
+	*this = *this - input;
+}
+
+bool BigInteger::operator < (int input)
+{
+	BigInteger temp = input;
+	return *this < temp;
+}
+
+bool BigInteger::operator > (int input)
+{
+	BigInteger temp = input;
+	return *this > temp;
+}
+
+bool BigInteger::operator <= (int input)
+{
+	BigInteger temp = input;
+	return *this <= temp;
+}
+
+bool BigInteger::operator >= (int input)
+{
+	BigInteger temp = input;
+	return *this >= temp;
+}
+
+bool BigInteger::operator == (int input)
+{
+	BigInteger temp = input;
+	return *this == temp;
+}
+
+bool BigInteger::operator != (int  input)
+{
+	BigInteger temp = input;
+	return *this != temp;
+}
+
+bool BigInteger::operator < (string &input)
+{
+	BigInteger temp(input);
+	return *this < temp;
+}
+
+bool BigInteger::operator <= (string &input)
+{
+	BigInteger temp(input);
+	return *this <= temp;
+}
+
+bool BigInteger::operator >= (string &input)
+{
+	BigInteger temp(input);
+	return *this >= temp;
+}
+
+bool BigInteger::operator == (string &input)
+{
+	BigInteger temp(input);
+	return *this == temp;
+}
+
+bool BigInteger::operator != (string &input)
+{
+	BigInteger temp(input);
+	return *this != temp;
+}
+
+bool BigInteger::operator > (string &input)
+{
+	BigInteger temp(input);
+	return *this > temp;
+}
+
+void BigInteger::operator = (int input)
+{
+	this->integer_array.clear();
+	this->integer_array.resize(0);
+	this->StoreString(to_string(input));
+}
 
 BigInteger BigInteger::operator - (BigInteger input)
 {
@@ -205,7 +392,7 @@ void BigInteger::SignedAddition(BigInteger &input1, BigInteger &input2, BigInteg
 	int input1_size = input1.integer_array.size();
 	int input2_size = input2.integer_array.size();
 	stack<int> result_holder;
-	
+
 	int greater;
 	if (input1_size == input2_size)
 	{
@@ -275,8 +462,8 @@ void BigInteger::SignedAddition(BigInteger &input1, BigInteger &input2, BigInteg
 		}
 		else if (input1_size >= 0)
 		{
-			if(input1.integer_array[input1_size] == 0 && carry == -1)
-				result_holder.push(carry + (int) pow(10, PAD_SIZE));
+			if (input1.integer_array[input1_size] == 0 && carry == -1)
+				result_holder.push(carry + (int)pow(10, PAD_SIZE));
 			else
 			{
 				result_holder.push(input1.integer_array[input1_size] + carry);
@@ -286,7 +473,7 @@ void BigInteger::SignedAddition(BigInteger &input1, BigInteger &input2, BigInteg
 		else
 		{
 			if (input2.integer_array[input2_size] == 0 && carry == -1)
-				result_holder.push(carry + (int) pow(10, PAD_SIZE));
+				result_holder.push(carry + (int)pow(10, PAD_SIZE));
 			else
 			{
 				result_holder.push(input2.integer_array[input2_size] + carry);
@@ -538,6 +725,12 @@ BigInteger::BigInteger(BigInteger& input)
 	this->integer_array.assign(input.integer_array.begin(), input.integer_array.end());
 }
 
+BigInteger::BigInteger(int input)
+{
+	negative = false;
+	this->StoreString(to_string(input));
+}
+
 void BigInteger::StoreString(string str)
 {
 	string input(str.begin(), str.end());
@@ -559,7 +752,7 @@ void BigInteger::StoreString(string str)
 		// making input string compatible with further algorithm
 		int padding;
 		padding = input.length() % PAD_SIZE;
-		
+
 		if (padding > 0)
 			padding = PAD_SIZE - padding;
 
@@ -592,7 +785,7 @@ string BigInteger::ToString()
 
 	output += to_string(integer_array[0]); // first integer is added manually because to avoid padded zeroes in the start of string i.e. output
 
-	string padding = "0000000000";
+	string padding = "000000000000000000000000";
 
 	for (unsigned int i = 1; i < integer_array.size(); i++)
 	{
@@ -602,8 +795,8 @@ string BigInteger::ToString()
 			padding = PAD_SIZE - padding;
 		if (padding > 0)
 		{
-			for(int i = 0; i < padding; i++)
-			integer = "0" + integer;
+			for (int i = 0; i < padding; i++)
+				integer = "0" + integer;
 		}
 		output += integer;
 	}
@@ -626,3 +819,5 @@ istream& operator >> (istream& input_stream, BigInteger &output)
 	getchar();
 	return input_stream;
 }
+
+#endif // !BIGINTEGER_H
