@@ -1,5 +1,3 @@
-#ifndef BIGINTEGER_H
-#define BIGINTEGER_H
 #pragma once
 
 // LICENSE
@@ -819,5 +817,3 @@ istream& operator >> (istream& input_stream, BigInteger &output)
 	getchar();
 	return input_stream;
 }
-
-#endif // !BIGINTEGER_H
